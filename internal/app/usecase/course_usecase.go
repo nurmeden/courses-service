@@ -8,6 +8,7 @@ import (
 type CourseUsecases interface {
 	GetCourses() ([]model.Course, error)
 	GetCourseByID(id string) (*model.Course, error)
+	GetCoursesByStudentID(studentID string) (*model.Course, error)
 	CreateCourse(courseInput *model.CourseInput) (*model.Course, error)
 	UpdateCourse(id string, courseUpdateInput *model.CourseUpdateInput) (*model.Course, error)
 	DeleteCourse(id string) error
@@ -89,6 +90,15 @@ func (cs *CourseUsecase) GetAllCourses() ([]*model.Course, error) {
 	}
 
 	return courses, nil
+}
+
+func (cs *CourseUsecase) GetCoursesByStudentID(studentID string) (*model.Course, error) {
+	student, err := cs.courseRepo.GetCoursesByStudentID(studentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return student, nil
 }
 
 // func (cs *CourseUsecase) AddStudentToCourse(courseID string, studentID string) (*model.Course, error) {

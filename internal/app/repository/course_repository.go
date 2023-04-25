@@ -38,7 +38,7 @@ func (r *CourseRepository) GetCourseByID(id string) (*model.Course, error) {
 	var course model.Course
 
 	// Формирование фильтра по идентификатору
-	filter := bson.M{"_id": id}
+	filter := bson.M{"id": id}
 
 	// Поиск курса по идентификатору
 	err := r.collection.FindOne(context.Background(), filter).Decode(&course)
@@ -92,7 +92,7 @@ func (r *CourseRepository) UpdateCourse(course *model.Course) (*model.Course, er
 	// course.UpdatedAt = now
 
 	// Формирование фильтра по идентификатору
-	filter := bson.M{"_id": course.ID}
+	filter := bson.M{"id": course.ID}
 
 	// Обновление курса в базе данных
 	result := r.collection.FindOneAndUpdate(context.Background(), filter, bson.M{"$set": course}, options.FindOneAndUpdate().SetReturnDocument(options.After))
@@ -128,4 +128,22 @@ func (r *CourseRepository) DeleteCourse(id string) error {
 	}
 
 	return nil
+}
+
+func (r *CourseRepository) GetCoursesByStudentID(id string) (*model.Course, error) {
+	var course model.Course
+
+	// Формирование фильтра по идентификатору
+	filter := bson.M{"students": id}
+
+	// Поиск курса по идентификатору
+	err := r.collection.FindOne(context.Background(), filter).Decode(&course)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("course not found")
+		}
+		return nil, err
+	}
+
+	return &course, nil
 }

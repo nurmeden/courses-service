@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"net/http"
 
@@ -93,13 +95,47 @@ func (cc *CourseController) DeleteCourse(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Курс успешно удален"})
 }
 
-// func (cc *CourseController) GetCoursesByStudentID(c *gin.Context) {
-// 	studentID := c.Param("id")
-// 	courses, err := cc.courseService.GetCoursesByStudentID(studentID)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
+func (cc *CourseController) GetCoursesByStudentID(c *gin.Context) {
+	studentID := c.Param("id")
+	fmt.Printf("studentID: %v\n", studentID)
+	// Получение информации о курсе по его ID
+	course, err := cc.courseService.GetCoursesByStudentID(studentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{"data": courses})
-// }
+	c.JSON(http.StatusOK, gin.H{"data": course})
+}
+
+func (cc *CourseController) GetCourseStudentsHandler(c *gin.Context) {
+	// Получаем идентификатор студента из URL-параметров
+	courseID := c.Param("id")
+
+	// Отправляем запрос к второму микросервису, отвечающему за курсы, используя HTTP-запрос
+	// Например, можно использовать стандартный пакет net/http для выполнения GET-запроса
+	resp, err := http.Get("http://localhost:8000/api/students/" + courseID + "/students")
+	fmt.Printf("resp: %v\n", resp)
+	if err != nil {
+		// Обработка ошибки
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get student courses"})
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Printf("resp: %v\n", resp.Body)
+
+	// Чтение ответа и обработка данных
+	// Например, можно использовать пакет encoding/json для декодирования JSON-ответа
+	var student *model.Student
+	err = json.NewDecoder(resp.Body).Decode(&student)
+	if err != nil {
+		// Обработка ошибки
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode student courses"})
+		return
+	}
+
+	// Отправляем данные о курсах в качестве ответа
+	c.JSON(http.StatusOK, gin.H{"students": student})
+}

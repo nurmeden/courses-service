@@ -21,6 +21,16 @@ type CourseUpdateInput struct {
 	Students    []string `json:"students"`
 }
 
+type Student struct {
+	ID        string   `json:"ID"`
+	FirstName string   `json:"FirstName"`
+	LastName  string   `json:"LastName"`
+	Password  string   `json:"Password"`
+	Email     string   `json:"email"`
+	Age       int      `json:"Age"`
+	Courses   []string `json:"courses"`
+}
+
 func NewCourse(courseInput *CourseInput) (*Course, error) {
 	course := &Course{
 		ID:          generateID(),
