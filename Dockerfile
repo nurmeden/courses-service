@@ -7,8 +7,8 @@ COPY . .
 RUN GO111MODULE="on" CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app ./cmd
 
 FROM alpine:latest
-WORKDIR /task-backend/microservice2
+WORKDIR /app
 COPY --from=builder /app/app .
 
-EXPOSE 8081
+EXPOSE 8080
 CMD ["./app"]

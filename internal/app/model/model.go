@@ -42,7 +42,6 @@ func NewCourse(courseInput *CourseInput) (*Course, error) {
 	return course, nil
 }
 
-// Update обновляет информацию о курсе на основе входных параметров
 func (c *Course) Update(courseInput *CourseUpdateInput) error {
 	if courseInput.Name != "" {
 		c.Name = courseInput.Name
@@ -59,7 +58,6 @@ func (c *Course) Update(courseInput *CourseUpdateInput) error {
 	return nil
 }
 
-// generateID генерирует уникальный идентификатор
 func generateID() string {
 	u := uuid.New()
 	return u.String()

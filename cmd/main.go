@@ -31,7 +31,7 @@ func main() {
 	}
 	defer client.Disconnect(context.Background())
 	fmt.Printf("client: %v\n", client)
-	courseRepo, _ := repository.NewCourseRepository(client, "taskdb", "courses")
+	courseRepo, _ := repository.NewCourseRepository(client, "coursesdb", "courses")
 
 	courseUsecase := usecase.NewCourseUsecase(courseRepo)
 

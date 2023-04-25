@@ -16,7 +16,7 @@ func SetupDatabase() *mongo.Client {
 		return nil
 	}
 	err = client.Ping(context.Background(), nil)
-	log.Println(err)
+	log.Println("error this:", err)
 	if err != nil {
 		return nil
 	}
