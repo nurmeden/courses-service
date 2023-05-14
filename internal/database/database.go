@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func SetupDatabase(ctx context.Context) (*mongo.Client, error) {
-	co := options.Client().ApplyURI("mongodb://coursesdb:27017")
+func SetupDatabase(ctx context.Context, mongoURI string) (*mongo.Client, error) {
+	co := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(ctx, co)
 	if err != nil {
 		log.Printf("Failed to connect to MongoDB: %v", err)

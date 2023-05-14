@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	"github.com/joho/godotenv"
 	"github.com/nurmeden/courses-service/internal/app/handlers"
 	"github.com/nurmeden/courses-service/internal/app/repository"
 	"github.com/nurmeden/courses-service/internal/app/usecase"
@@ -26,6 +27,9 @@ func main() {
 	logger.SetOutput(logfile)
 	logger.SetLevel(logrus.DebugLevel)
 
+	if err := godotenv.Load(".env"); err != nil {
+		log.Print("No .env file found")
+	}
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     "redis:6379",
 		Password: "",
@@ -40,14 +44,18 @@ func main() {
 		logger.Fatal("Ошибка подключения к Redis:", err)
 	}
 
-	client, err := database.SetupDatabase(context.Background())
+	dbName := os.Getenv("DATABASE_NAME")
+	mongoURI := os.Getenv("MONGODB_URI")
+	collectionName := os.Getenv("COLLECTION_NAME")
+
+	client, err := database.SetupDatabase(context.Background(), mongoURI)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 	defer client.Disconnect(context.Background())
 	fmt.Printf("client: %v\n", client)
-	courseRepo, _ := repository.NewCourseRepository(client, "coursesdb", "courses", redisClient, logger)
+	courseRepo, _ := repository.NewCourseRepository(client, dbName, collectionName, redisClient, logger)
 
 	courseUsecase := usecase.NewCourseUsecase(courseRepo)
 

@@ -26,6 +26,7 @@ services:
 
   course-service:
     build: .
+    restart: always
     networks:
       - internal
     ports:
@@ -33,6 +34,6 @@ services:
     depends_on:
       - coursesdb
     environment:
-      - MONGODB_URI= "mongodb://coursesdb:27017"
+      - MONGODB_URI=mongodb://coursesdb:27017
     expose:
       - "8080"
