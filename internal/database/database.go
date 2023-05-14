@@ -2,24 +2,24 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func SetupDatabase() *mongo.Client {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
+func SetupDatabase(ctx context.Context) (*mongo.Client, error) {
+	co := options.Client().ApplyURI("mongodb://coursesdb:27017")
+	client, err := mongo.Connect(ctx, co)
 	if err != nil {
-		fmt.Printf("Failed to connect to MongoDB: %v", err)
-		return nil
+		log.Printf("Failed to connect to MongoDB: %v", err)
+		return nil, err
 	}
 	err = client.Ping(context.Background(), nil)
-	log.Println("error this:", err)
 	if err != nil {
-		return nil
+		log.Printf("Failed to ping MongoDB: %v", err)
+		return nil, err
 	}
-	fmt.Printf("client: %v\n", client)
-	return client
+	log.Printf("Connected to MongoDB: %v", client)
+	return client, nil
 }

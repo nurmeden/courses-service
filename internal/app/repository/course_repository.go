@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/go-redis/redis"
 	"github.com/nurmeden/courses-service/internal/app/model"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -13,11 +15,15 @@ import (
 type CourseRepository struct {
 	client     *mongo.Client
 	collection *mongo.Collection
+	cache      *redis.Client
+	logger     *logrus.Logger
 }
 
-func NewCourseRepository(client *mongo.Client, dbName string, collectionName string) (*CourseRepository, error) {
+func NewCourseRepository(client *mongo.Client, dbName string, collectionName string, cache *redis.Client, logger *logrus.Logger) (*CourseRepository, error) {
 	r := &CourseRepository{
 		client: client,
+		cache:  cache,
+		logger: logger,
 	}
 	collection := client.Database(dbName).Collection(collectionName)
 	r.collection = collection

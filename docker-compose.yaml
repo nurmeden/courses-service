@@ -1,0 +1,38 @@
+version: "3.9"
+
+networks:
+  internal:
+    driver: bridge
+
+
+services:
+  coursesdb:
+    image: mongo:latest
+    restart: always
+    networks:
+      - internal
+    environment:
+      MONGO_INITDB_DATABASE: coursesdb
+    ports:
+      - "6000:27017"
+
+  redis:
+    image: redis:latest
+    networks:
+      - internal
+    restart: always
+    ports:
+      - "6379:6379"
+
+  course-service:
+    build: .
+    networks:
+      - internal
+    ports:
+      - "8080:8080"
+    depends_on:
+      - coursesdb
+    environment:
+      - MONGODB_URI= "mongodb://coursesdb:27017"
+    expose:
+      - "8080"

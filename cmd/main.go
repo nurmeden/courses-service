@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/nurmeden/courses-service/internal/app/handlers"
 	"github.com/nurmeden/courses-service/internal/app/repository"
 	"github.com/nurmeden/courses-service/internal/app/usecase"
@@ -20,22 +21,38 @@ func main() {
 		log.Fatal(err)
 	}
 	defer logfile.Close()
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logrus.SetOutput(logfile)
-	logrus.SetLevel(logrus.DebugLevel)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetOutput(logfile)
+	logger.SetLevel(logrus.DebugLevel)
 
-	client := database.SetupDatabase()
-	if client == nil {
-		fmt.Println("hero")
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	defer redisClient.Close()
+
+	_, err = redisClient.Ping().Result()
+	if err != nil {
+		fmt.Println(err.Error())
+		logger.Fatal("Ошибка подключения к Redis:", err)
+	}
+
+	client, err := database.SetupDatabase(context.Background())
+	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 	defer client.Disconnect(context.Background())
 	fmt.Printf("client: %v\n", client)
-	courseRepo, _ := repository.NewCourseRepository(client, "coursesdb", "courses")
+	courseRepo, _ := repository.NewCourseRepository(client, "coursesdb", "courses", redisClient, logger)
 
 	courseUsecase := usecase.NewCourseUsecase(courseRepo)
 
 	studentHandler := handlers.NewCourseController(courseUsecase)
+
 	r := gin.Default()
 	courseAPI := r.Group("/api/courses")
 	{
