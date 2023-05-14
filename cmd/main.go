@@ -16,6 +16,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type config struct {
+}
+
 func main() {
 	logfile, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
@@ -41,21 +44,19 @@ func main() {
 	_, err = redisClient.Ping().Result()
 	if err != nil {
 		fmt.Println(err.Error())
-		logger.Fatal("Ошибка подключения к Redis:", err)
+		logger.Fatal("Redis connection error:", err)
 	}
 
-	dbName := os.Getenv("DATABASE_NAME")
 	mongoURI := os.Getenv("MONGODB_URI")
-	collectionName := os.Getenv("COLLECTION_NAME")
 
 	client, err := database.SetupDatabase(context.Background(), mongoURI)
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.Errorf("Error setting up database: %v", err)
 		return
 	}
 	defer client.Disconnect(context.Background())
 	fmt.Printf("client: %v\n", client)
-	courseRepo, _ := repository.NewCourseRepository(client, dbName, collectionName, redisClient, logger)
+	courseRepo, _ := repository.NewCourseRepository(client, "coursesdb", "courses", redisClient, logger)
 
 	courseUsecase := usecase.NewCourseUsecase(courseRepo)
 
