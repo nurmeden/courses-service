@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/nurmeden/courses-service/internal/app/model"
 	"github.com/nurmeden/courses-service/internal/app/repository"
+	"github.com/sirupsen/logrus"
 )
 
 type CourseUsecases interface {
@@ -18,17 +19,20 @@ type CourseUsecases interface {
 
 type CourseUsecase struct {
 	courseRepo *repository.CourseRepository
+	logger     *logrus.Logger
 }
 
-func NewCourseUsecase(courseRepo *repository.CourseRepository) *CourseUsecase {
+func NewCourseUsecase(courseRepo *repository.CourseRepository, logger *logrus.Logger) *CourseUsecase {
 	return &CourseUsecase{
 		courseRepo: courseRepo,
+		logger:     logger,
 	}
 }
 
 func (cs *CourseUsecase) CreateCourse(courseInput *model.CourseInput) (*model.Course, error) {
 	course, err := model.NewCourse(courseInput)
 	if err != nil {
+		cs.logger.Error("")
 		return nil, err
 	}
 	_, err = cs.courseRepo.CreateCourse(course)

@@ -57,7 +57,7 @@ func main() {
 	fmt.Printf("client: %v\n", client)
 	courseRepo, _ := repository.NewCourseRepository(client, dbName, collectionName, redisClient, logger)
 
-	courseUsecase := usecase.NewCourseUsecase(courseRepo)
+	courseUsecase := usecase.NewCourseUsecase(courseRepo, logger)
 
 	studentHandler := handlers.NewCourseController(courseUsecase)
 
