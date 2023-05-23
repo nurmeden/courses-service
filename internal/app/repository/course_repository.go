@@ -3,11 +3,14 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/go-redis/redis"
 	"github.com/nurmeden/courses-service/internal/app/model"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -34,14 +37,18 @@ func NewCourseRepository(client *mongo.Client, dbName string, collectionName str
 
 func (r *CourseRepository) GetCourseByID(id string) (*model.Course, error) {
 	var course model.Course
-
-	filter := bson.M{"id": id}
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Println("Invalid id")
+	}
+	filter := bson.M{"_id": objectId}
 
 	r.logger.Infof("Getting course by ID: %s", id)
 
-	err := r.collection.FindOne(context.Background(), filter).Decode(&course)
+	err = r.collection.FindOne(context.Background(), filter).Decode(&course)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Printf("err.Error() in errors is: %v\n", err.Error())
 			r.logger.Errorf("Course not found: %v", err)
 			return nil, errors.New("course not found")
 		}
@@ -75,7 +82,6 @@ func (r *CourseRepository) GetAllCourses() ([]*model.Course, error) {
 }
 
 func (r *CourseRepository) CreateCourse(course *model.Course) (*model.Course, error) {
-
 	_, err := r.collection.InsertOne(context.Background(), course)
 	if err != nil {
 		r.logger.Errorf("Failed to create course: %v", err)
@@ -87,9 +93,23 @@ func (r *CourseRepository) CreateCourse(course *model.Course) (*model.Course, er
 }
 
 func (r *CourseRepository) UpdateCourse(course *model.Course) (*model.Course, error) {
-	filter := bson.M{"id": course.ID}
+	objectID, err := primitive.ObjectIDFromHex(course.ID)
+	if err != nil {
+		log.Println("Invalid ID")
+		return nil, err
+	}
 
-	result := r.collection.FindOneAndUpdate(context.Background(), filter, bson.M{"$set": course}, options.FindOneAndUpdate().SetReturnDocument(options.After))
+	filter := bson.M{"_id": objectID}
+	update := bson.M{
+		"$set": bson.M{
+			// "name":        course.Name,
+			// "description": course.Description,
+			"students": course.Students,
+		},
+	}
+
+	options := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	result := r.collection.FindOneAndUpdate(context.Background(), filter, update, options)
 	if result.Err() != nil {
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
 			r.logger.Errorf("Course not found: %v", result.Err())
@@ -100,17 +120,22 @@ func (r *CourseRepository) UpdateCourse(course *model.Course) (*model.Course, er
 	}
 
 	updatedCourse := &model.Course{}
-	err := result.Decode(updatedCourse)
+	err = result.Decode(updatedCourse)
 	if err != nil {
 		r.logger.Errorf("Failed to decode updated course: %v", err)
 		return nil, err
 	}
+
 	r.logger.Infof("Updated course: %v", updatedCourse)
 	return updatedCourse, nil
 }
 
 func (r *CourseRepository) DeleteCourse(id string) error {
-	filter := bson.M{"_id": id}
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Println("Invalid id")
+	}
+	filter := bson.M{"_id": objectId}
 	result, err := r.collection.DeleteOne(context.Background(), filter)
 	if err != nil {
 		r.logger.Errorf("Failed to delete course: %v", err)
@@ -126,21 +151,44 @@ func (r *CourseRepository) DeleteCourse(id string) error {
 	return nil
 }
 
-func (r *CourseRepository) GetCoursesByStudentID(id string) (*model.Course, error) {
-	var course model.Course
+func (r *CourseRepository) GetCoursesByStudentID(id string) ([]*model.Course, error) {
+	// objectID, err := primitive.ObjectIDFromHex(id)
+	// if err != nil {
+	// 	log.Println("Invalid ID")
+	// 	return nil, err
+	// }
 
-	filter := bson.M{"students": id}
+	filter := bson.M{"students": bson.M{"$in": []string{id}}}
 
-	err := r.collection.FindOne(context.Background(), filter).Decode(&course)
+	cursor, err := r.collection.Find(context.Background(), filter)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			r.logger.Infof("Course not found for student with id %v", id)
-			return nil, errors.New("course not found")
+		fmt.Printf("err.Error(): coursesFind %v\n", err.Error())
+		r.logger.Errorf("Failed to get courses for student with ID %v: %v", id, err)
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	courses := []*model.Course{}
+	for cursor.Next(context.Background()) {
+		var course model.Course
+		if err := cursor.Decode(&course); err != nil {
+			r.logger.Errorf("Error decoding course: %s", err)
+			continue
 		}
-		r.logger.Errorf("Failed to get courses for student with id %v: %v", id, err)
+		courses = append(courses, &course)
+	}
+
+	if err := cursor.Err(); err != nil {
+		r.logger.Errorf("Cursor error: %v", err)
 		return nil, err
 	}
 
-	r.logger.Infof("Found courses for student with id %v", id)
-	return &course, nil
+	if len(courses) == 0 {
+		r.logger.Infof("No courses found for student with ID %v", id)
+		return nil, nil
+	}
+	fmt.Printf("courses: %v\n", courses)
+
+	r.logger.Infof("Found courses for student with ID %v", id)
+	return courses, nil
 }

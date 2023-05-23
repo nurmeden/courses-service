@@ -9,7 +9,7 @@ import (
 )
 
 func SetupDatabase(ctx context.Context, mongoURI string) (*mongo.Client, error) {
-	co := options.Client().ApplyURI(mongoURI)
+	co := options.Client().ApplyURI("mongodb://localhost:27017")
 	client, err := mongo.Connect(ctx, co)
 	if err != nil {
 		log.Printf("Failed to connect to MongoDB: %v", err)

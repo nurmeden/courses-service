@@ -1,9 +1,11 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type Course struct {
-	ID          string   `json:"id"`
+	ID          string   `bson:"_id,omitempty"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Students    []string `json:"students"`
@@ -42,7 +44,7 @@ func NewCourse(courseInput *CourseInput) (*Course, error) {
 	return course, nil
 }
 
-func (c *Course) Update(courseInput *CourseUpdateInput) error {
+func (c *Course) Update(courseInput *Course) error {
 	if courseInput.Name != "" {
 		c.Name = courseInput.Name
 	}

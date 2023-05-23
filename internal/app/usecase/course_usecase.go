@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/nurmeden/courses-service/internal/app/model"
 	"github.com/nurmeden/courses-service/internal/app/repository"
 	"github.com/sirupsen/logrus"
@@ -9,7 +11,7 @@ import (
 type CourseUsecases interface {
 	GetCourses() ([]model.Course, error)
 	GetCourseByID(id string) (*model.Course, error)
-	GetCoursesByStudentID(studentID string) (*model.Course, error)
+	GetCoursesByStudentID(id string) ([]*model.Course, error)
 	CreateCourse(courseInput *model.CourseInput) (*model.Course, error)
 	UpdateCourse(id string, courseUpdateInput *model.CourseUpdateInput) (*model.Course, error)
 	DeleteCourse(id string) error
@@ -29,26 +31,27 @@ func NewCourseUsecase(courseRepo *repository.CourseRepository, logger *logrus.Lo
 	}
 }
 
-func (cs *CourseUsecase) CreateCourse(courseInput *model.CourseInput) (*model.Course, error) {
-	course, err := model.NewCourse(courseInput)
-	if err != nil {
-		cs.logger.Error("")
-		return nil, err
-	}
-	_, err = cs.courseRepo.CreateCourse(course)
+func (cs *CourseUsecase) CreateCourse(courseInput *model.Course) (*model.Course, error) {
+	// course, err := model.NewCourse(courseInput)
+	// if err != nil {
+	// 	cs.logger.Error("")
+	// 	return nil, err
+	// }
+	_, err := cs.courseRepo.CreateCourse(courseInput)
 	if err != nil {
 		return nil, err
 	}
 
-	return course, nil
+	return courseInput, nil
 }
 
-func (cs *CourseUsecase) UpdateCourse(courseID string, courseInput *model.CourseUpdateInput) (*model.Course, error) {
+func (cs *CourseUsecase) UpdateCourse(courseID string, courseInput *model.Course) (*model.Course, error) {
 	course, err := cs.courseRepo.GetCourseByID(courseID)
 	if err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
 		return nil, err
 	}
-
+	fmt.Printf("course: %v\n", course)
 	err = course.Update(courseInput)
 	if err != nil {
 		return nil, err
@@ -89,8 +92,8 @@ func (cs *CourseUsecase) GetAllCourses() ([]*model.Course, error) {
 	return courses, nil
 }
 
-func (cs *CourseUsecase) GetCoursesByStudentID(studentID string) (*model.Course, error) {
-	student, err := cs.courseRepo.GetCoursesByStudentID(studentID)
+func (cs *CourseUsecase) GetCoursesByStudentID(id string) ([]*model.Course, error) {
+	student, err := cs.courseRepo.GetCoursesByStudentID(id)
 	if err != nil {
 		return nil, err
 	}

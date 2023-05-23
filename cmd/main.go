@@ -16,8 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type config struct {
-}
+type config struct{}
 
 func main() {
 	logfile, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -75,5 +74,4 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
-
 }
