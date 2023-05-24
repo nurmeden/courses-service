@@ -29,7 +29,7 @@ type Student struct {
 	LastName  string   `json:"LastName"`
 	Password  string   `json:"Password"`
 	Email     string   `json:"email"`
-	Age       int      `json:"Age"`
+	Age       string   `json:"Age"`
 	Courses   []string `json:"courses"`
 }
 

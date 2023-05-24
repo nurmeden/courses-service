@@ -152,8 +152,8 @@ func (cc *CourseController) GetCourseStudentsHandler(c *gin.Context) {
 
 	fmt.Printf("resp: %v\n", resp.Body)
 
-	var student *model.Student
-	err = json.NewDecoder(resp.Body).Decode(&student)
+	var students []*model.Student
+	err = json.NewDecoder(resp.Body).Decode(&students)
 	if err != nil {
 		// Обработка ошибки
 		log.Println(err.Error())
@@ -161,5 +161,5 @@ func (cc *CourseController) GetCourseStudentsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"students": student})
+	c.JSON(http.StatusOK, gin.H{"students": students})
 }

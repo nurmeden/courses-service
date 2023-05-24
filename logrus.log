@@ -1,0 +1,7 @@
+{"level":"fatal","msg":"Redis connection error:dial tcp 127.0.0.1:6379: connect: connection refused","time":"2023-05-23T13:31:39+05:00"}
+{"level":"info","msg":"Created course: \u0026{768b41d4-5be8-4422-bd0b-ab7f23db3c9c learning Python course for beginners []}","time":"2023-05-23T13:41:49+05:00"}
+{"level":"info","msg":"Getting course by ID: 768b41d4-5be8-4422-bd0b-ab7f23db3c9c","time":"2023-05-23T13:42:53+05:00"}
+{"level":"info","msg":"Got course by ID: 768b41d4-5be8-4422-bd0b-ab7f23db3c9c","time":"2023-05-23T13:42:53+05:00"}
+{"level":"info","msg":"Updated course: \u0026{768b41d4-5be8-4422-bd0b-ab7f23db3c9c learning Python course for beginners [646c71a9d2c283bbea4967c6]}","time":"2023-05-23T13:42:53+05:00"}
+{"level":"info","msg":"Found courses for student with id 646c71a9d2c283bbea4967c6","time":"2023-05-23T13:43:23+05:00"}
+{"level":"info","msg":"Found courses for student with ID 646c71a9d2c283bbea4967c6","time":"2023-05-24T08:48:18+05:00"}
